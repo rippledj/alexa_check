@@ -175,10 +175,15 @@ class Headers:
             logger.error(traceback.format_exc())
 
 # Parse single Alexa site for
-def parse_items_thread(args, qq):
+def parse_items_thread(database_args, args, qq):
 
     # Include logger
     logger = AlexaLogger.logging.getLogger("Alexa_Database_Construction")
+
+    # Create a database connection
+    db_conn = SQLProcessor.SQLProcess(database_args, args)
+    db_conn.connect()
+    args['db_conn'] = db_conn
 
     # Create a PyCurl object
     curl = pycurl.Curl()
@@ -293,7 +298,7 @@ if __name__ == "__main__":
         "alexa_list" : alexa_list_filename,
         "app_log_file" : app_log_file,
         "list_limit" : None,
-        "num_threads" : 1,
+        "num_threads" : 20,
         "max_queue_count" : 32767,
         "max_count" : 100,
         "curl_conn_timeout" : 10,
@@ -316,11 +321,6 @@ if __name__ == "__main__":
     # Include logger
     logger = AlexaLogger.logging.getLogger("Alexa_Database_Construction")
 
-    # Create a database connection
-    db_conn = SQLProcessor.SQLProcess(database_args, args)
-    db_conn.connect()
-    args['db_conn'] = db_conn
-
     # Create a Queue to hold all sites
     try:
         qq = create_list_queue(args)
@@ -330,7 +330,7 @@ if __name__ == "__main__":
     # Create all processes and start
     processes = []
     for i in range(args['num_threads']):
-        p = Process(target=parse_items_thread, args=(args, qq))
+        p = Process(target=parse_items_thread, args=(database_args, args, qq))
         processes.append(p)
         p.start()
     for p in processes:
