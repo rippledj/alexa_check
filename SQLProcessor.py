@@ -89,6 +89,23 @@ class SQLProcess:
             print("-- Skipping previous entry: " + ext + domain)
             return True
 
+    # Check the database to see if all items are already processed
+    def all_already_scraped(self, num, domain, position):
+
+        sql = """SELECT COUNT(*) as count FROM alexa.headers
+        WHERE pos=%s
+        AND tld=%s"""
+        values = (position, domain)
+        self._cursor.execute(sql, values)
+        count = self._cursor.fetchone()
+        # Return scraped status
+        #print("Num found: " + str(count[0]))
+        # Compare to expected number
+        if count[0] < num: return False
+        else:
+            print("-- Skipping previous entry: " + domain)
+            return True
+
     # Store mx to database
     def store_mx_to_database(self, args, data_obj):
 

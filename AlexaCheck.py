@@ -205,59 +205,62 @@ def parse_items_thread(database_args, args, qq):
             domain = item["domain"]
             position = item["pos"]
 
-            for ext in args['schemes_and_subdomains']:
+            # Only process if not found in database already
+            if args['db_conn'].all_already_scraped(len(args['schemes_and_subdomains']), domain, position) == False:
 
-                # Only process if not found in database already
-                if args['db_conn'].is_already_scraped(ext, domain, position) == False:
+                for ext in args['schemes_and_subdomains']:
 
-                    # Instantiate object
-                    data_obj = Headers()
+                    # Only process if not found in database already
+                    if args['db_conn'].is_already_scraped(ext, domain, position) == False:
 
-                    # Get headers using pycurl
-                    try:
+                        # Instantiate object
+                        data_obj = Headers()
 
-                        # Set some other information in the data object
-                        data_obj.tld = domain
-                        data_obj.ext = ext.replace("https://","").replace("http://", "")
-                        data_obj.url = ext + domain
-                        data_obj.position = int(position)
+                        # Get headers using pycurl
+                        try:
 
-                        print("-- Checking " + ext + domain + " for HTTP headers...")
-                        # Set URL value
-                        curl.setopt(curl.URL, ext + domain)
-                        b_obj = BytesIO()
-                        #user_agent = '-H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.2403.89 Safari/537.36"'
-                        #command = "curl " + user_agent + " -I https://" + domain
-                        #print(command)
-                        #output = subprocess.check_output(command, shell=True)
-                        curl.setopt(pycurl.FOLLOWLOCATION, args['curl_follow_redirect'])
-                        curl.setopt(pycurl.MAXREDIRS, args['curl_max_redirect'])
-                        curl.setopt(pycurl.CONNECTTIMEOUT, args['curl_conn_timeout'])
-                        curl.setopt(pycurl.TIMEOUT, args['curl_timeout'])
-                        curl.setopt(curl.HEADERFUNCTION, data_obj.display_header)
-                        curl.setopt(curl.WRITEDATA, b_obj)
-                        curl.perform()
+                            # Set some other information in the data object
+                            data_obj.tld = domain
+                            data_obj.ext = ext.replace("https://","").replace("http://", "")
+                            data_obj.url = ext + domain
+                            data_obj.position = int(position)
 
-                        data_obj.get_http_return_code()
-                        data_obj.get_ip()
-                        # Only want to do this once since it's for domain and subdomain
-                        if "https://" in data_obj.url: data_obj.get_mx_records()
-                        #print('Header values:-')
-                        #print(data_obj.headers)
+                            print("-- Checking " + ext + domain + " for HTTP headers...")
+                            # Set URL value
+                            curl.setopt(curl.URL, ext + domain)
+                            b_obj = BytesIO()
+                            #user_agent = '-H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.2403.89 Safari/537.36"'
+                            #command = "curl " + user_agent + " -I https://" + domain
+                            #print(command)
+                            #output = subprocess.check_output(command, shell=True)
+                            curl.setopt(pycurl.FOLLOWLOCATION, args['curl_follow_redirect'])
+                            curl.setopt(pycurl.MAXREDIRS, args['curl_max_redirect'])
+                            curl.setopt(pycurl.CONNECTTIMEOUT, args['curl_conn_timeout'])
+                            curl.setopt(pycurl.TIMEOUT, args['curl_timeout'])
+                            curl.setopt(curl.HEADERFUNCTION, data_obj.display_header)
+                            curl.setopt(curl.WRITEDATA, b_obj)
+                            curl.perform()
 
-                    except Exception as e:
-                        data_obj.http_code = 0
-                        print("[ ** HTTP header request failed to respond " + ext + domain + "...]")
-                        traceback.print_exc()
-                        logger.error("[ ** HTTP header request failed to respond " + ext + domain + "...]")
-                        logger.error(traceback.format_exc())
+                            data_obj.get_http_return_code()
+                            data_obj.get_ip()
+                            # Only want to do this once since it's for domain and subdomain
+                            if "https://" in data_obj.url: data_obj.get_mx_records()
+                            #print('Header values:-')
+                            #print(data_obj.headers)
 
-                    # Store the results to database
-                    args['db_conn'].store_headers_to_database(args, data_obj)
-                    if len(data_obj.mx): args['db_conn'].store_mx_to_database(args, data_obj)
+                        except Exception as e:
+                            data_obj.http_code = 0
+                            print("[ ** HTTP header request failed to respond " + ext + domain + "...]")
+                            traceback.print_exc()
+                            logger.error("[ ** HTTP header request failed to respond " + ext + domain + "...]")
+                            logger.error(traceback.format_exc())
 
-                    # Delete the object
-                    del data_obj
+                        # Store the results to database
+                        args['db_conn'].store_headers_to_database(args, data_obj)
+                        if len(data_obj.mx): args['db_conn'].store_mx_to_database(args, data_obj)
+
+                        # Delete the object
+                        del data_obj
 
     # End curl session
     curl.close()
