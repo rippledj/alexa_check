@@ -2,11 +2,11 @@
 
 ## Introduction
 
-The **Alexa Top Websites** (https://www.alexa.com/topsites) can be used to monitor the popularity trend of a website and compare the popularity of different websites (WikiPedia).
+The **Alexa Top Websites** (https://www.alexa.com/topsites) are used to monitor the popularity trend of a website and compare the popularity of different websites.
 
-In order to gauge the security posture of the internet as a whole mapping information from the Alexa Top Sites is useful. **AlexaCheck.py** assists by building a PostgreSQL database that stores header information from each website, the first listed resolved IP address, HTTP response code, and MX records.  The header information also includes cookies that are passed during an initial connection. This approach was used to examine security of the **Alexa Top Websites** in a research paper **CookiExt: Patching the Browser Against Session Hijacking Attacks**.
+In order to gauge the security posture of the internet as a whole collecting information from the Alexa Top Sites is useful. **AlexaCheck.py** assists by building a PostgreSQL database that stores header information from each website, the first listed resolved IP address, HTTP response code, and MX records.  The header information also includes cookies that are passed during an initial connection. This approach was used to examine security of the **Alexa Top Websites** in a research paper **CookiExt: Patching the Browser Against Session Hijacking Attacks**.
 
-**AlexaCheck.py** can also accept a list of other domains you want to check for forced TLS encryption and inspect cookies and other header information.
+**AlexaCheck.py** can also accept a list of other domains you want to check for forced TLS encryption and inspect cookies and other header information as part of the reconnaissance scope of a penetration test.
 
 ## Specific HTTP Security Risks
 

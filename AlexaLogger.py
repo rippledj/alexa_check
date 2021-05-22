@@ -9,6 +9,7 @@
 # Import Python Modules
 import logging
 import traceback
+from pathlib import Path
 import time
 import os
 import sys
@@ -18,7 +19,7 @@ import pprint
 def setup_logger(log_level, log_file):
 
     # Create the log file if not exists
-    if not os.path.exists(log_file): os.mknod(log_file)
+    if not os.path.exists(log_file): Path(log_file).touch()
 
     # Define logger object
     logger = logging.getLogger('Alexa_Database_Construction')
