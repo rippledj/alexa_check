@@ -106,6 +106,43 @@ class SQLProcess:
             print("-- Skipping previous entry: " + domain)
             return True
 
+    # Returns the next Alexa position to scrape
+    # Remvoes any incomplete domains
+    def get_next_position(self, args):
+
+        # Get any partially completed domains
+        sql = """SELECT pos FROM alexa.headers
+        GROUP BY pos, tld HAVING count(pos) < 4
+        """
+        self._cursor.execute(sql)
+        missing = self._cursor.fetchall()
+        #print("Missing")
+        #print(missing)
+        missing_list = []
+
+        # Loop through all partilly completed positions
+        for pos in missing:
+            # Append to list to return
+            missing_list.append(pos[0])
+            # Remove all the partially completed domains
+            sql = """DELETE FROM alexa.headers
+            WHERE pos = %s
+            """
+            values = (pos,)
+            self._cursor.execute(sql, values)
+
+        # Get highest position
+        sql = """SELECT MAX(pos) FROM alexa.headers"""
+        self._cursor.execute(sql)
+        highest = self._cursor.fetchone()
+        #print("Highest: ")
+        #print(highest[0])
+        next_pos = highest[0] + 1
+
+        # Return the missing list and
+        # next position after which none have been processed
+        return next_pos, missing_list
+
     # Store mx to database
     def store_mx_to_database(self, args, data_obj):
 

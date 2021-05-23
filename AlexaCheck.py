@@ -37,6 +37,12 @@ def create_list_queue(args):
     print("-- Creating a link queue for all Alexa sites in list...")
     logger.info("-- Creating a link queue for all Alexa sites in list...")
 
+    # Create a database connection
+    db_conn = SQLProcessor.SQLProcess(database_args, args)
+    db_conn.connect()
+    # Get the highest number in the database
+    next_pos, missing = db_conn.get_next_position(args)
+
     # Initialize a queue of queue's
     qq = []
     # Initialize a queue to fill with items
@@ -50,6 +56,7 @@ def create_list_queue(args):
     # First column is only rank, second is url
     with open(args['alexa_list'], "r") as infile:
         alexa_list = infile.readlines()
+    print("Starting Alexa List size: " + str(len(alexa_list)))
 
     # Append all to the list
     size = 0
@@ -57,19 +64,23 @@ def create_list_queue(args):
     for site in alexa_list:
         # Get the domain
         arr = site.split(",")
-        print("[adding " + arr[-1].strip() + " to the list...]")
-        list_queue.put({ "pos" : arr[0].strip(), "domain" : arr[-1].strip()})
-        size += 1
-        if count == max_count:
-            # Put the list queue on to the qq
-            qq.append(list_queue)
-            time.sleep(0.2)
-            # Reinitialize the queue
-            list_queue = Queue()
-            # Reset the counter
-            count = 0
-        # Increment the position
-        count += 1
+        # Only add the item if not processed
+        if int(arr[0]) in missing or int(arr[0]) >= next_pos:
+            print("[adding " + arr[-1].strip() + " to the list...]")
+            list_queue.put({ "pos" : arr[0].strip(), "domain" : arr[-1].strip()})
+            size += 1
+            if count == max_count:
+                # Put the list queue on to the qq
+                qq.append(list_queue)
+                time.sleep(0.2)
+                # Reinitialize the queue
+                list_queue = Queue()
+                # Reset the counter
+                count = 0
+            # Increment the position
+            count += 1
+        # Print message for skipping item
+        else: print("[skipping " + arr[-1].strip() + " from the list...]")
 
     # Append the last partially-filled queue
     qq.append(list_queue)
@@ -78,6 +89,7 @@ def create_list_queue(args):
     logger.info("-- Finished adding sites to link queue for all Alexa sites in list...")
     time.sleep(2)
     print("-- Queue Size: " + str(size))
+
     return qq
 
 

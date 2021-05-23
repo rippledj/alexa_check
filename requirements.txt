@@ -1,0 +1,5 @@
+dnspython == 1.16.0
+nslookup == 1.1.0
+psycopg2 == 2.8.4
+pycurl == 7.43.0.6
+tldextract == 2.2.2
